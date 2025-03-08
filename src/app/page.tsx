@@ -5,6 +5,7 @@ export default function Home() {
   const [word, setWord] = useState("");
   const [translation, setTranslation] = useState(null);
   const [songs, setSongs] = useState([]);
+  const [selectedText, setSelectedText] = useState("");
 
   const handleTranslate = async () => {
     const res = await fetch(`http://localhost:8000/translate`);
@@ -12,7 +13,6 @@ export default function Home() {
     setTranslation(data.translation);
     console.log(data);
 
-    // Get pronunciation audio
     // Get pronunciation audio
     const ttsRes = await fetch("http://localhost:8000/tts");
 
@@ -33,10 +33,26 @@ export default function Home() {
   };
 
   const handleGetSongs = async () => {
-    const res = await fetch(`http://localhost:8000/songs`);
+    const res = await fetch(`http://localhost:8000/songs?query=gaho`);
     const data = await res.json();
     console.log(data);
     setSongs(data.songs);
+    console.log(data.songs);
+  };
+
+  // Get selected text
+  const handleSelection = () => {
+    const selection = window.getSelection()?.toString();
+    if (selection) setSelectedText(selection);
+  };
+
+  // Speak the selected text
+  const speakText = () => {
+    if (!selectedText) return;
+    const speech = new SpeechSynthesisUtterance(selectedText);
+    speech.lang = "ko"; // Korean
+    speech.rate = 0.7;
+    speechSynthesis.speak(speech);
   };
 
   return (
@@ -82,6 +98,18 @@ export default function Home() {
               >
                 {song.name} - {song.artist}
               </a>
+              <div>
+                <h1>Select Lyrics to Hear Pronunciation</h1>
+                <p
+                  onMouseUp={handleSelection}
+                  style={{ cursor: "pointer", userSelect: "text" }}
+                >
+                  {song.lyrics}
+                </p>
+                <button onClick={speakText} disabled={!selectedText}>
+                  Pronounce Selected Text
+                </button>
+              </div>
             </li>
           ))}
         </ul>
