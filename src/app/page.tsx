@@ -3,17 +3,36 @@ import { useState } from "react";
 
 export default function Home() {
   const [translation, setTranslation] = useState(null);
+  const [romanizedTranslation, setRomanizedTranslation] = useState(null);
   const [songs, setSongs] = useState([]);
   const [selectedText, setSelectedText] = useState("");
 
   const handleTranslate = async () => {
     if (!selectedText) return;
 
-    const response = await fetch(
-      `http://localhost:8000/translate?text=${encodeURIComponent(selectedText)}`
-    );
+    const response = await fetch("http://localhost:8000/translate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: selectedText, target_lang: "en" }),
+    });
     const data = await response.json();
     setTranslation(data.translation);
+  };
+
+  const handleRomanize = async () => {
+    if (!selectedText) return;
+
+    const response = await fetch("http://localhost:8000/romanize", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: selectedText }),
+    });
+    const data = await response.json();
+    setRomanizedTranslation(data.romanization);
   };
 
   const handleGetSongs = async () => {
@@ -53,7 +72,7 @@ export default function Home() {
           onClick={handleTranslate}
           className="bg-green-500 text-white px-4 py-2 rounded"
         >
-          Get Songs
+          Translate
         </button>
       </div>
       {translation && <p className="mt-4">Translation: {translation}</p>}
@@ -79,6 +98,7 @@ export default function Home() {
                 </p>
                 <div className="divider">ENGLISH TRANSLATION</div>
                 <p>{translation}</p>
+                <p>{romanizedTranslation}</p>
                 <button onClick={speakText} disabled={!selectedText}>
                   Pronounce Selected Text
                 </button>
@@ -87,6 +107,12 @@ export default function Home() {
                   className="bg-blue-500 text-white px-4 py-2 rounded"
                 >
                   Translate Selected Text
+                </button>
+                <button
+                  onClick={handleRomanize}
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                >
+                  See Romanized Version of Selected Text
                 </button>
               </div>
             </li>
