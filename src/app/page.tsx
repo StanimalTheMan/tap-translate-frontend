@@ -6,6 +6,7 @@ export default function Home() {
   const [romanizedTranslation, setRomanizedTranslation] = useState(null);
   const [songs, setSongs] = useState([]);
   const [selectedText, setSelectedText] = useState("");
+  const [explanation, setExplanation] = useState("");
 
   const handleTranslate = async () => {
     if (!selectedText) return;
@@ -35,8 +36,24 @@ export default function Home() {
     setRomanizedTranslation(data.romanization);
   };
 
+  const handleAnalyze = async () => {
+    if (!selectedText || !songs) return;
+
+    const response = await fetch("http://localhost:8000/explain_word", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ word: selectedText, context: songs[0].lyrics }),
+    });
+    const data = await response.json();
+    setExplanation(data.explanation);
+  };
+
   const handleGetSongs = async () => {
-    const res = await fetch(`http://localhost:8000/songs?query=gaho`);
+    const res = await fetch(
+      `http://localhost:8000/songs?query=시작&artist=gaho`
+    );
     const data = await res.json();
     console.log(data);
     setSongs(data.songs);
@@ -76,6 +93,7 @@ export default function Home() {
         </button>
       </div>
       {translation && <p className="mt-4">Translation: {translation}</p>}
+      {explanation && <p className="mt-4">Explanation: {explanation}</p>}
       {songs.length > 0 && (
         <ul className="mt-4">
           {songs.map((song, index) => (
@@ -99,7 +117,11 @@ export default function Home() {
                 <div className="divider">ENGLISH TRANSLATION</div>
                 <p>{translation}</p>
                 <p>{romanizedTranslation}</p>
-                <button onClick={speakText} disabled={!selectedText}>
+                <button
+                  onClick={speakText}
+                  disabled={!selectedText}
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                >
                   Pronounce Selected Text
                 </button>
                 <button
@@ -113,6 +135,12 @@ export default function Home() {
                   className="bg-blue-500 text-white px-4 py-2 rounded"
                 >
                   See Romanized Version of Selected Text
+                </button>
+                <button
+                  onClick={handleAnalyze}
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                >
+                  Use OpenAI to analyze context of this word or phrase:
                 </button>
               </div>
             </li>
