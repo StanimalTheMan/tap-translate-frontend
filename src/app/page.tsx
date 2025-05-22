@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 
 export default function Home() {
   const [translation, setTranslation] = useState(null);
@@ -37,17 +38,26 @@ export default function Home() {
   };
 
   const handleAnalyze = async () => {
-    if (!selectedText || !songs) return;
+    // if (!selectedText || !songs) return;
+    if (!songs) return;
 
-    const response = await fetch("http://localhost:8000/explain_word", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ word: selectedText, context: songs[0].lyrics }),
-    });
+    const response = await fetch(
+      "http://localhost:8000/analyze_song_comprehensive",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          song_title: "시작",
+          artist: "gaho",
+          lyrics: songs[0].lyrics,
+        }),
+      }
+    );
     const data = await response.json();
-    setExplanation(data.explanation);
+    console.log(data);
+    // setExplanation(data.explanation);
   };
 
   const handleGetSongs = async () => {
@@ -104,6 +114,13 @@ export default function Home() {
                 rel="noopener noreferrer"
                 className="text-blue-600"
               >
+                <Image
+                  src={song.thumbnail}
+                  alt={`${song.name} by ${song.artist}`}
+                  width={300}
+                  height={300}
+                  className="rounded-lg"
+                />
                 {song.name} - {song.artist}
               </a>
               <div>
